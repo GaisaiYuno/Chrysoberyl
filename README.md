@@ -1,4 +1,4 @@
-# Chrysoberyl 克丽索贝莉露
+# Chrysoberyl
 A Set of Tools for Music Metadata and Cover Editing.
 
 为音乐元数据编辑以及封面编辑准备的一系列工具。
