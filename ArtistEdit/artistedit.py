@@ -189,7 +189,6 @@ for i in range(len(file_names)):
               song.tags['TITLE'][0])
     except:
         print("Processing error!")
-    song = taglib.File(source_path + file_names[i])
     song.tags['ALBUMARTIST'] = [connect_note.join(album_artist)]
     song.save()
     song.close()
