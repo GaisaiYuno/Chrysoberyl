@@ -17,6 +17,7 @@ A Set of Tools for Music Metadata and Cover Editing.
 - 识别 CV，如 `A（CV:B）,C（CV.D）` 分割为 `C` 和 `D`。
 - 利用网易云 API 和本地字典，将不同描述的艺术家归为一类，避免歧义，如 `Tsukagoshi Yuuichirou`、`塚越 雄一朗` 、`碓氷悠一朗` 和 `つかごし ゆういちろう` 归为 `塚越雄一朗`。
 - 自动整理专辑艺术家。
+- 比 Mp3tag 更加省时。
 
 依赖：
 
