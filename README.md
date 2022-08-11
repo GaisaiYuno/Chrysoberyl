@@ -18,8 +18,12 @@ A Set of Tools for Music Metadata and Cover Editing.
 - 利用网易云 API 和本地字典，将不同描述的艺术家归为一类，避免歧义，如 `Tsukagoshi Yuuichirou`、`塚越 雄一朗` 、`碓氷悠一朗` 和 `つかごし ゆういちろう` 归为 `塚越雄一朗`。
 - 自动整理专辑艺术家。
 - 比 Mp3tag 更加省时。
+- 根据网易云专辑 ID，计算歌曲标题相似度，自动下载对应歌词。并且自动整合中日文歌词在一起。
+- 根据网易云的数据，自动修正标题。
 
 依赖：
 
-- taglib
-- requests
+- `taglib`
+- `requests`
+- `pylrc`
+- `difflib`
