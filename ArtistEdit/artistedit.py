@@ -229,7 +229,7 @@ for i in range(len(file_names)):
                     matched_name = netease_song["name"]
             print("Matched", matched_name, "Ratio", max_ratio)
             choice = "yes"
-            if (max_ratio < 0.9):
+            if (max_ratio < 0.5):
                 choice = input(
                     "Match ratio is low, sure to continue? (yes/no)")
             if (choice != "yes"):
