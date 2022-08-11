@@ -1,8 +1,17 @@
 # -*- coding:utf-8 -*-
 
-import taglib, os, re, requests, json, time
+import taglib
+import os
+import re
+import requests
+import json
+import time
+import pylrc
+import difflib
 
 MatchBrackets = True
+DownloadLRC = True
+Use163Name = True
 source_path = './'
 split_note = [';', '、', ',', 'feat.', '×', 'and', '/', '&', 'と']
 processible_suffix = [".mp3", ".flac", ".ape", ".m4a", ".wav"]
@@ -14,9 +23,9 @@ pri_dic = {}
 pri_dic_path = "D:/pri_dic.json"
 
 delete_cv = ["(", ")", "（", "）", "cv:", "CV:", "cv：", "CV：", "cv.", "CV."]
+delete_brackets = ["【", "】"]
 
 file_names = os.listdir(source_path)
-
 
 def BreakDownByBrackets(Artist):
     Artists = []
@@ -55,7 +64,7 @@ def SplitArtists(Artist):
     return ArtistList
 
 
-music163_url = "https://ncm.icodeq.com/search"
+music163_url = "https://music.cyrilstudio.top/"
 
 
 def Get163Name(ArtistName):
@@ -65,7 +74,7 @@ def Get163Name(ArtistName):
         print("Query for " + ArtistName)
         while True:
             try:
-                req = requests.get(music163_url,
+                req = requests.get(music163_url+"search",
                                    params={
                                        'keywords': ArtistName,
                                        'type': 100,
@@ -104,6 +113,34 @@ def Get163Name(ArtistName):
         return name_dic[ArtistName]
 
 
+def Get163Lyrics(netease_id, file_name):
+    while True:
+        try:
+            req = requests.get(music163_url+"lyric",
+                               params={
+                                   'id': netease_id,
+                               })
+            break
+        except:
+            print("API Error")
+            time.sleep(5000)
+    req = req.json()
+    if (req["lrc"] and req["lrc"]["lyric"] != ""):
+        lyric = pylrc.parse(req["lrc"]["lyric"])
+        if (req["tlyric"]):
+            tlyric = pylrc.parse(req["tlyric"]["lyric"])
+            for tsub in tlyric:
+                for jsub in lyric:
+                    if (jsub.time == tsub.time and tsub.text != ""):
+                        for brackets in delete_brackets:
+                            tsub.text = tsub.text.replace(brackets, "")
+                        jsub.text += "「"+tsub.text+"」"
+        with open(source_path+file_name+".lrc", 'w', encoding='utf-8') as dump_lyric:
+            print("Lyric saved to "+source_path+file_name+".lrc")
+            dump_lyric.write(lyric.toLRC())
+            dump_lyric.close()
+
+
 with open(name_dic_path, 'r') as load_name_dic:
     name_dic = json.load(load_name_dic)
 
@@ -111,6 +148,28 @@ with open(pri_dic_path, 'r') as load_pri_dic:
     pri_dic = json.load(load_pri_dic)
 
 artist_count = []
+
+if DownloadLRC:
+    album_id = input("Input album id:")
+    if (album_id != "-1"):
+        while True:
+            try:
+                alb_req = requests.get(music163_url+"album",
+                                       params={
+                                           'id': album_id,
+                                       })
+                break
+            except:
+                print("API Error")
+                time.sleep(5000)
+        alb_req = alb_req.json()
+    else:
+        alb_req = ""
+
+
+def string_similar(s1, s2):
+    return difflib.SequenceMatcher(None, s1, s2).quick_ratio()
+
 
 for i in range(len(file_names)):
     suffix = os.path.splitext(file_names[i])[-1]
@@ -125,10 +184,13 @@ for i in range(len(file_names)):
     try:
         if (len(song.tags) == 0):
             song.tags['TRACKNUMBER'] = [i + 1]
+        print("--------------------------------------")
         print("Now processing " + song.tags['TRACKNUMBER'][0] + "." +
               song.tags['TITLE'][0])
     except:
         print("Processing error!")
+
+    # song_id=(int)(song.tags['TRACKNUMBER'][0].split('/')[0])
 
     processed_artist = []
     for j in range(len(split_result)):
@@ -148,6 +210,34 @@ for i in range(len(file_names)):
         if (result == ""):
             continue
         processed_artist[j] = result
+
+    if DownloadLRC:
+        if (alb_req != ""):
+            max_ratio = 0
+            netease_id = 0
+            matched_name = ""
+            for netease_song in alb_req["songs"]:
+                ratio = string_similar(
+                    netease_song["name"], song.tags['TITLE'][0])
+                if (ratio > max_ratio):
+                    max_ratio = ratio
+                    netease_id = netease_song["id"]
+                    matched_name = netease_song["name"]
+            print("Matched", matched_name, "Ratio", max_ratio)
+            choice = "yes"
+            if (max_ratio < 0.9):
+                choice = input(
+                    "Match ratio is low, sure to continue? (yes/no)")
+            if (choice != "yes"):
+                continue
+            if Use163Name:
+                song.tags['TITLE'][0] = matched_name
+            print("Netease ID:", netease_id)
+            Get163Lyrics(netease_id, os.path.splitext(file_names[i])[0])
+        else:
+            netease_id = input("Input Netease ID:")
+            if (netease_id != -1):
+                Get163Lyrics(netease_id, os.path.splitext(file_names[i])[0])
 
     processed_artist = list(set(processed_artist))
     print("Artist list:")
