@@ -127,18 +127,22 @@ def Get163Lyrics(netease_id, file_name):
     req = req.json()
     if (req["lrc"] and req["lrc"]["lyric"] != ""):
         lyric = pylrc.parse(req["lrc"]["lyric"])
-        if (req["tlyric"]):
-            tlyric = pylrc.parse(req["tlyric"]["lyric"])
-            for tsub in tlyric:
-                for jsub in lyric:
-                    if (jsub.time == tsub.time and tsub.text != ""):
-                        for brackets in delete_brackets:
-                            tsub.text = tsub.text.replace(brackets, "")
-                        jsub.text += "「"+tsub.text+"」"
-        with open(source_path+file_name+".lrc", 'w', encoding='utf-8') as dump_lyric:
-            print("Lyric saved to "+source_path+file_name+".lrc")
-            dump_lyric.write(lyric.toLRC())
-            dump_lyric.close()
+        try:
+            if (req["tlyric"]):
+                tlyric = pylrc.parse(req["tlyric"]["lyric"])
+                for tsub in tlyric:
+                    for jsub in lyric:
+                        if (jsub.time == tsub.time and tsub.text != ""):
+                            for brackets in delete_brackets:
+                                tsub.text = tsub.text.replace(brackets, "")
+                            jsub.text += "「"+tsub.text+"」"
+        except:
+            print("No tlyric!")
+        if len(lyric.toLRC().strip())>0:
+            with open(source_path+file_name+".lrc", 'w', encoding='utf-8') as dump_lyric:
+                print("Lyric saved to "+source_path+file_name+".lrc")
+                dump_lyric.write(lyric.toLRC())
+                dump_lyric.close()
 
 
 with open(name_dic_path, 'r') as load_name_dic:
