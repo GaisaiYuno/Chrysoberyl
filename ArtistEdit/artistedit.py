@@ -23,7 +23,7 @@ pri_dic = {}
 pri_dic_path = "D:/pri_dic.json"
 
 delete_cv = ["(", ")", "（", "）", "cv:", "CV:", "cv：", "CV：", "cv.", "CV."]
-delete_brackets = ["【", "】"]
+delete_brackets = ["【", "】", "『", "』"]
 
 file_names = os.listdir(source_path)
 
