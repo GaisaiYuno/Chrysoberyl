@@ -27,6 +27,7 @@ delete_brackets = ["【", "】"]
 
 file_names = os.listdir(source_path)
 
+
 def BreakDownByBrackets(Artist):
     Artists = []
     flag = False
@@ -74,7 +75,7 @@ def Get163Name(ArtistName):
         print("Query for " + ArtistName)
         while True:
             try:
-                req = requests.get(music163_url+"search",
+                req = requests.get(music163_url + "search",
                                    params={
                                        'keywords': ArtistName,
                                        'type': 100,
@@ -116,7 +117,7 @@ def Get163Name(ArtistName):
 def Get163Lyrics(netease_id, file_name):
     while True:
         try:
-            req = requests.get(music163_url+"lyric",
+            req = requests.get(music163_url + "lyric",
                                params={
                                    'id': netease_id,
                                })
@@ -135,12 +136,13 @@ def Get163Lyrics(netease_id, file_name):
                         if (jsub.time == tsub.time and tsub.text != ""):
                             for brackets in delete_brackets:
                                 tsub.text = tsub.text.replace(brackets, "")
-                            jsub.text += "「"+tsub.text+"」"
+                            jsub.text += "「" + tsub.text + "」"
         except:
             print("No tlyric!")
-        if len(lyric.toLRC().strip())>0:
-            with open(source_path+file_name+".lrc", 'w', encoding='utf-8') as dump_lyric:
-                print("Lyric saved to "+source_path+file_name+".lrc")
+        if len(lyric.toLRC().strip()) > 0:
+            with open(source_path + file_name + ".lrc", 'w',
+                      encoding='utf-8') as dump_lyric:
+                print("Lyric saved to " + source_path + file_name + ".lrc")
                 dump_lyric.write(lyric.toLRC())
                 dump_lyric.close()
 
@@ -158,7 +160,7 @@ if DownloadLRC:
     if (album_id != "-1"):
         while True:
             try:
-                alb_req = requests.get(music163_url+"album",
+                alb_req = requests.get(music163_url + "album",
                                        params={
                                            'id': album_id,
                                        })
@@ -220,13 +222,15 @@ for i in range(len(file_names)):
             max_ratio = 0
             netease_id = 0
             matched_name = ""
+            matched_song = alb_req["songs"][0]
             for netease_song in alb_req["songs"]:
-                ratio = string_similar(
-                    netease_song["name"], song.tags['TITLE'][0])
+                ratio = string_similar(netease_song["name"],
+                                       song.tags['TITLE'][0])
                 if (ratio > max_ratio):
                     max_ratio = ratio
                     netease_id = netease_song["id"]
                     matched_name = netease_song["name"]
+                    matched_song = netease_song
             print("Matched", matched_name, "Ratio", max_ratio)
             choice = "yes"
             if (max_ratio < 0.5):
@@ -235,7 +239,15 @@ for i in range(len(file_names)):
             if (choice != "yes"):
                 continue
             if Use163Name:
-                song.tags['TITLE'][0] = matched_name
+                song163name = matched_song["name"]
+                # print(matched_song["alia"])
+                try:
+                    if (len(matched_song["alia"]) > 0):
+                        song163name += "（" + ','.join(
+                            matched_song["alia"]) + "）"
+                except:
+                    print("No alias")
+                song.tags['TITLE'][0] = song163name
             print("Netease ID:", netease_id)
             Get163Lyrics(netease_id, os.path.splitext(file_names[i])[0])
         else:
@@ -266,6 +278,12 @@ if (enter.isdigit()):
 else:
     album_artist.append(enter)
 
+album163name = alb_req["album"]["name"]
+try:
+    album163name += "（" + ','.join(alb_req["album"]["alias"]) + "）"
+except:
+    print("No alias")
+
 for i in range(len(file_names)):
     suffix = os.path.splitext(file_names[i])[-1]
     if suffix not in processible_suffix:
@@ -284,5 +302,6 @@ for i in range(len(file_names)):
     except:
         print("Processing error!")
     song.tags['ALBUMARTIST'] = [connect_note.join(album_artist)]
+    song.tags['ALBUM'] = [album163name]
     song.save()
     song.close()
