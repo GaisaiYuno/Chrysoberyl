@@ -169,12 +169,27 @@ if DownloadLRC:
                 print("API Error")
                 time.sleep(5000)
         alb_req = alb_req.json()
+        print("Processing Album:", alb_req["album"]["name"])
     else:
         alb_req = ""
 
 
 def string_similar(s1, s2):
     return difflib.SequenceMatcher(None, s1, s2).quick_ratio()
+
+
+def generate_alias(item, field1, field2):
+    name = item[field1]
+    try:
+        alias = item[field2]
+        if (len(alias) > 0):
+            return name + "（" + ','.join(alias) + "）"
+        else:
+            print("No alias!")
+            return name
+    except:
+        print("No alias!")
+        return name
 
 
 for i in range(len(file_names)):
@@ -236,20 +251,16 @@ for i in range(len(file_names)):
             if (max_ratio < 0.5):
                 choice = input(
                     "Match ratio is low, sure to continue? (yes/no)")
-            if (choice != "yes"):
+            if (choice != "yes" and not choice.isdigit()):
                 continue
-            if Use163Name:
-                song163name = matched_song["name"]
-                # print(matched_song["alia"])
-                try:
-                    if (len(matched_song["alia"]) > 0):
-                        song163name += "（" + ','.join(
-                            matched_song["alia"]) + "）"
-                except:
-                    print("No alias")
-                song.tags['TITLE'][0] = song163name
-            print("Netease ID:", netease_id)
-            Get163Lyrics(netease_id, os.path.splitext(file_names[i])[0])
+            if (choice.isdigit()):
+                Get163Lyrics((int)(choice), os.path.splitext(file_names[i])[0])
+            else:
+                if Use163Name:
+                    song.tags['TITLE'][0] = generate_alias(
+                        matched_song, "name", "alia")
+                print("Netease ID:", netease_id)
+                Get163Lyrics(netease_id, os.path.splitext(file_names[i])[0])
         else:
             netease_id = input("Input Netease ID:")
             if (netease_id != -1):
@@ -278,11 +289,7 @@ if (enter.isdigit()):
 else:
     album_artist.append(enter)
 
-album163name = alb_req["album"]["name"]
-try:
-    album163name += "（" + ','.join(alb_req["album"]["alias"]) + "）"
-except:
-    print("No alias")
+album163name = generate_alias(alb_req["album"], "name", "alias")
 
 for i in range(len(file_names)):
     suffix = os.path.splitext(file_names[i])[-1]
