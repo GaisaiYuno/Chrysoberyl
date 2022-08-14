@@ -10,8 +10,8 @@ import pylrc
 import difflib
 
 MatchBrackets = True
-DownloadLRC = True
-Use163Name = True
+DownloadLRC = False
+Use163Name = False
 source_path = './'
 split_note = [';', '、', ',', 'feat.', '×', 'and', '/', '&', 'と']
 processible_suffix = [".mp3", ".flac", ".ape", ".m4a", ".wav"]
@@ -196,6 +196,7 @@ for i in range(len(file_names)):
     suffix = os.path.splitext(file_names[i])[-1]
     if suffix not in processible_suffix:
         continue
+    print(source_path + file_names[i])
     song = taglib.File(source_path + file_names[i])
     try:
         split_result = SplitArtists(song.tags['ARTIST'][0])
