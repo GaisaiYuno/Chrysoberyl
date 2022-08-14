@@ -5,11 +5,11 @@ A Set of Tools for Music Metadata and Cover Editing.
 
 ## Chrysoberyl Web
 
-![artist](\src\artist.png)
+![artist](/src/artist.png)
 
-![music](\src\music.PNG)
+![music](/src/music.PNG)
 
-![settings](\src\settings.PNG)
+![settings](/src/settings.PNG)
 
 更多请查看 https://github.com/GaisaiYuno/Chrysoberyl/wiki
 
