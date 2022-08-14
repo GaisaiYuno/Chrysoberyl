@@ -107,23 +107,32 @@
 				v = SongArtists[dropdown_id][i];
 				// console.log(v);
 				if (v != "") {
-					dropdown_values.push(v)
 					colors = ["", "teal", "blue", "red"];
 					await $.post(flaskServer + "/artist", { artist: v }, function (res) {
-						// console.log("id:"+dropdown_id+"v:"+v)
-						$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '"><div class="ui ' + colors[res.inside] + ' empty circular label"></div>' + v + '</div>')
+						nv = v;
+						if (res.inside == 2) {
+							nv = "<del>" + v + "</del>"
+							nv += " " + res.match
+							v = res.match
+						}
+						nv='<a href="/addartist?name=' + v + '">' + nv + '</a>'
+						console.log(nv)
+						/*
+						href="/addartist?name=' + v + '
+						*/
+						$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '"><div class="ui ' + colors[res.inside] + ' empty circular label"></div>' + nv + '</div>')
 					})
+					dropdown_values.push(v)
 				}
 			}
 			await $.get(flaskServer + "/search", function (res) {
 				for (var i = 0; i < res.results.length; i++) {
 					v = res.results[i]["name"]
-					if (v != "") {
-						$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '"><div class="ui ' + "teal" + ' empty circular label"></div>' + v + '</div>')
+					if (v != "" && !dropdown_values.includes(v)) {
+						$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '" href="/addartist?name="' + v + '"><div class="ui ' + "teal" + ' empty circular label"></div>' + v + '</div>')
 					}
 				}
 			})
-			// console.log("id:"+dropdown_id+"completed"+dropdown_values)
 			await $("#dropdown" + dropdown_id).dropdown("set selected", dropdown_values)
 		}
 		async function initArtistEdit(field) {
@@ -219,7 +228,7 @@
 							lyricButton = "<div class=\"ui button icon\" onclick=get163id(" + j + "),shiftButton(" + j + ",1) data-tooltip=\"下载歌词\"><i class=\"download icon\"></i></div>"
 							lyricSearch = "<div class=\"ui icon input\" style='display:none'><input type=\"text\" placeholder=\"输入网易云 ID...\" id=\"neteaseid" + j + "\"><i class=\"circular search link icon\"  onclick=getLRC($(\"#neteaseid" + j + "\").val()," + j + "),shiftButton(" + j + ",0)></i></div>"
 							lyricHTML = "<td class=\"collapsing\" id=\"lyricbutton" + j + "\">" + lyricButton + lyricSearch + "</td>"
-							saveHTML = "<td class='collapsing'><div class='ui button icon' id='savebutton"+j+"' onclick=savebyid("+j+") data-tooltip='保存'><i class='edit icon'></i></div></td>"
+							saveHTML = "<td class='collapsing'><div class='ui button icon' id='savebutton" + j + "' onclick=savebyid(" + j + ") data-tooltip='保存'><i class='edit icon'></i></div></td>"
 							music_files.push(item.path)
 						}
 						fileTable.append("<tr>" + iconHTML + trackHTML + nameHTML + artistHTML + albumartistHTML + queryHTML + lyricHTML + saveHTML + "</tr>")
@@ -238,6 +247,7 @@
 					queryHTML = "<td class=\"collapsing\" id='info" + j + "'>" + queryButton + "</td>"
 					lyricButton = "<div class=\"ui button icon\" onclick=getAllLRC() data-tooltip=\"下载全部歌词\"><i class=\"download icon\"></i></div>"
 					lyricHTML = "<td class=\"collapsing\" id=\"lyricbutton" + j + "\">" + lyricButton + "</td>"
+					saveHTML = "<td class='collapsing'><div class='ui button icon' onclick=saveAll() data-tooltip='全部保存'><i class='edit icon'></i></div></td>"
 					fileTable.append("<tr>" + iconHTML + trackHTML + nameHTML + artistHTML + albumartistHTML + queryHTML + lyricHTML + saveHTML + "</tr>")
 					initArtistEdit($("#artistedit"))
 					initAlbumArtistEdit($("#albumartistedit"))
@@ -252,7 +262,7 @@
 			path = music_files[id]
 			await $.post(flaskServer + '/song', { path: path }, function (res, error) {
 				// console.log(res)
-				if (music_tags[id]==undefined){
+				if (music_tags[id] == undefined) {
 					count_complete++
 				}
 				music_tags[id] = JSON.parse(res.tags)
