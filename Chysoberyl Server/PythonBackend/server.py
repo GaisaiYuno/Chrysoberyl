@@ -48,6 +48,7 @@ def BreakDownByBrackets(Artist):
             temp = ""
     return Artists
 
+
 def MatchCV(Artist):
     SearchResult = BreakDownByBrackets(Artist)
     if (MatchBrackets and len(SearchResult) >= 1):
@@ -56,6 +57,7 @@ def MatchCV(Artist):
         ArtistList = []
         ArtistList.append(Artist)
         return ArtistList
+
 
 def SplitArtists(Artist):
     for key in pri_dic:
@@ -66,6 +68,7 @@ def SplitArtists(Artist):
     ArtistList = []
     ArtistList.append(Artist)
     return ArtistList
+
 
 def Get163Lyrics(netease_id, file_path):
     while True:
@@ -93,12 +96,11 @@ def Get163Lyrics(netease_id, file_path):
         except:
             print("114514")
         if len(lyric.toLRC().strip()) > 0:
-            path = os.path.splitext(file_path)[0]+'.lrc'
-            with open(path, 'w',
-                      encoding='utf-8') as dump_lyric:
+            path = os.path.splitext(file_path)[0] + '.lrc'
+            with open(path, 'w', encoding='utf-8') as dump_lyric:
                 dump_lyric.write(lyric.toLRC())
                 dump_lyric.close()
-                return "歌词保存到 "+path
+                return "歌词保存到 " + path
         else:
             return "无歌词"
 
@@ -146,7 +148,7 @@ def getArtistInfo():
     if (artist in inside_set):
         return {"inside": 1}
     elif (artist in name_dic):
-        return {"inside": 2}
+        return {"inside": 2, "match": name_dic[artist]}
     else:
         return {"inside": 3}
 
@@ -219,7 +221,11 @@ def getSetting():
 @app.route("/getlrc", methods=['POST'])
 def getLRC():
     try:
-        return {"success": True, "info": Get163Lyrics(request.form["netease_id"], request.form["path"])}
+        return {
+            "success": True,
+            "info": Get163Lyrics(request.form["netease_id"],
+                                 request.form["path"])
+        }
     except:
         return {"success": False}
 
@@ -231,14 +237,12 @@ def search(query):
         ret = {"success": True, "results": []}
         for artist in inside_set:
             if re.match(query.lower(), artist.lower()):
-                ret["results"].append(
-                    {
-                        "name": artist,
-                        "value": artist,
-                        "description": artist,
-                        "text": artist,
-                    }
-                )
+                ret["results"].append({
+                    "name": artist,
+                    "value": artist,
+                    "description": artist,
+                    "text": artist,
+                })
         return ret
     except:
         return {"success": False}
@@ -249,12 +253,10 @@ def search2():
     try:
         ret = {"success": True, "results": []}
         for artist in inside_set:
-            ret["results"].append(
-                {
-                    "name": artist,
-                    "value": artist,
-                }
-            )
+            ret["results"].append({
+                "name": artist,
+                "value": artist,
+            })
         return ret
     except:
         return {"success": False}
@@ -263,7 +265,7 @@ def search2():
 @app.route("/getartist", methods=['POST'])
 def getArtist():
     try:
-        ArtistName=request.form["name"]
+        ArtistName = request.form["name"]
         ret = {"success": True, "artists": []}
         try:
             req = requests.get(music163_url + "search",
@@ -280,45 +282,47 @@ def getArtist():
             Artists = req['result']['artists']
         except:
             Artists = []
-        
+
         for i in range(len(Artists)):
-            ret["artists"].append(
-                {
-                    "name":Artists[i]['name'],
-                    "url":Artists[i]['img1v1Url']
-                }
-            )
-        ret["artists"]=json.dumps(ret["artists"])
+            ret["artists"].append({
+                "name": Artists[i]['name'],
+                "url": Artists[i]['img1v1Url']
+            })
+        ret["artists"] = json.dumps(ret["artists"])
         return ret
     except Exception as e:
-        return {"success": False,"e":e}
+        return {"success": False, "e": e}
+
 
 def save_name_dic():
     with open(name_dic_path, 'w') as dump_name_dic:
         json.dump(name_dic, dump_name_dic)
 
-@app.route("/adddic" ,methods=['POST'])
+
+@app.route("/adddic", methods=['POST'])
 def addDic():
     try:
-        artist1=request.form["artist1"]
-        artist2=request.form["artist2"]
-        name_dic[artist1]=artist2
+        artist1 = request.form["artist1"]
+        artist2 = request.form["artist2"]
+        name_dic[artist1] = artist2
         inside_set.add(artist2)
         save_name_dic()
-        return {"success":True}
+        return {"success": True}
     except:
         return {"success": False}
 
+
 # 输入album_id,music_tags，输出一个list 代表匹配度，163id
+
 
 def string_similar(s1, s2):
     return difflib.SequenceMatcher(None, s1, s2).quick_ratio()
+
 
 @app.route("/getalbum", methods=['POST'])
 def getAlbum():
     try:
         album_id = request.form["album_id"]
-        print(album_id)
         while True:
             try:
                 alb_req = requests.get(music163_url + "album",
@@ -330,26 +334,29 @@ def getAlbum():
                 print("API Error")
                 time.sleep(5000)
         alb_req = alb_req.json()
-        print(alb_req)
         music_tags = json.loads(request.form["music_tags"])
-        print(music_tags)
         matched_list = []
         for i in range(len(music_tags)):
-            print(i)
             my_song = music_tags[i]
-            print(my_song)
             max_ratio = 0
             netease_id = 0
             matched_name = ""
             for netease_song in alb_req["songs"]:
-                ratio = string_similar(
-                    netease_song["name"], my_song['TITLE'][0])
+                ratio = string_similar(netease_song["name"],
+                                       my_song['TITLE'][0])
                 if (ratio > max_ratio):
                     max_ratio = ratio
                     netease_id = netease_song["id"]
                     matched_name = netease_song["name"]
-            matched_list.append(
-                {"ratio": max_ratio, "netease_id": netease_id, "name": matched_name})
+            matched_list.append({
+                "ratio": max_ratio,
+                "netease_id": netease_id,
+                "name": matched_name
+            })
         return {"success": True, "matched_list": json.dumps(matched_list)}
     except:
         return {"success": False}
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
