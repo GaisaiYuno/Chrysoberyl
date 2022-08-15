@@ -22,6 +22,7 @@
 		var count_complete = 0
 		var matched_list = []
 		var name_dic, inside_set
+		var AlbumsSet = new Set()
 	</script>
 
 	<div class="ui main container">
@@ -83,10 +84,12 @@
 			}
 			artist = $("#artist" + id);
 			artist.html("");
-			genLabel(artist,res.ARTIST, id);
+			genLabel(artist, res.ARTIST, id);
 			albumartist = $("#albumartist" + id);
 			albumartist.html("");
 			genLabel(albumartist, res.ALBUMARTIST, music_files.length + id);
+			AlbumsSet.add(res.ALBUM[0])
+			albumnameedit = $("#albumnameedit").attr("value", Array.from(AlbumsSet).join(','))
 		}
 		function genMusicTag(id) {
 			music_tags[id].TITLE[0] = $("#nameedit" + id).val()
@@ -132,7 +135,7 @@
 				}
 			}
 			console.log(dropdown_values)
-			for (const v of inside_set){
+			for (const v of inside_set) {
 				if (v != "" && !dropdown_values.includes(v)) {
 					$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '" href="/addartist?name="' + v + '"><div class="ui ' + "teal" + ' empty circular label"></div>' + v + '</div>')
 				}
@@ -228,7 +231,8 @@
 					iconHTML = "<td class=\"collapsing\"><i class=\"" + iconType + " icon\"></i></td>"
 
 					trackHTML = "<td class=\"collapsing\"><div class='column' id='track'><div class=\"ui fluid input\"><input type=\"text\" value=\"" + 0 + "\" id=\"trackedit" + j + "\"></div></div></td>"
-					nameHTML = "<td><div class='column' id='nameedit'><div class=\"ui fluid input\"><input type=\"text\" value=\"\" id=\"nameedit" + j + "\"></div></div></td>"
+					nameButton = "<div class=\"ui button icon\" onclick=coverAllAlbumName() data-tooltip=\"设置全部专辑名\"><i class=\"edit icon\"></i></div>"
+					nameHTML = "<td><div class='column'><div class=\"ui fluid action input\"><input type=\"text\" value=\"\" id=\"albumnameedit\"> "+nameButton+"</div></div></td>"
 					artistHTML = "<td class=\"collapsing\" id=\"artistedit\"></td>"
 					albumartistHTML = "<td class=\"collapsing\" id=\"albumartistedit\"></td>"
 					queryButton = "<div class=\"ui button icon\" onclick=getAllSongInfo() data-tooltip=\"全部加载\"><i class=\"sync icon\"></i></div>"
@@ -244,9 +248,10 @@
 			});
 			$("#fileprogress").progress({ percent: 0 });
 			count_complete = 0
+			AlbumsSet.clear()
 		}
-		function getSongInfo(id, refresh=true) {
-			if (refresh){
+		function getSongInfo(id, refresh = true) {
+			if (refresh) {
 				$.get(flaskServer + "/getdic", function (res) {
 					name_dic = JSON.parse(res.name_dic)
 					inside_set = new Set(JSON.parse(res.inside_set))
@@ -272,7 +277,7 @@
 					)
 				})
 			}
-			else{
+			else {
 				$("#info" + id + " > div > i").attr("class", "notched circle loading icon")
 				path = music_files[id]
 				$.post(flaskServer + '/song', { path: path }, function (res, error) {
@@ -303,14 +308,20 @@
 			)
 		}
 		function getAllSongInfo() {
+			AlbumsSet.clear()
 			$.get(flaskServer + "/getdic", function (res) {
 				name_dic = JSON.parse(res.name_dic)
 				inside_set = new Set(JSON.parse(res.inside_set))
 				$("#fileprogress").progress({ percent: 0 });
 				for (var i = 0; i < music_files.length; i++) {
-					getSongInfo(i,false)
+					getSongInfo(i, false)
 				}
 			})
+		}
+		function coverAllAlbumName(){
+			for (var i=0;i<music_files.length;i++){
+				music_tags[i]['ALBUM']=$("#albumnameedit").val()
+			}
 		}
 		function shiftButton(id, flag) {
 			if (flag) {
