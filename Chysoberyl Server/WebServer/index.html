@@ -109,7 +109,7 @@
 			dropdown_values = [];
 			for (var i = 0; i < SongArtists[dropdown_id].length; i++) {
 				v = SongArtists[dropdown_id][i];
-				console.log(v);
+				// console.log(v);
 				if (v != "") {
 					colors = ["", "teal", "blue", "red"];
 					await $.post(flaskServer + "/artist", { artist: v }, function (res) {
@@ -120,7 +120,7 @@
 							v = res.match
 						}
 						nv='<a href="/addartist?name=' + v + '">' + nv + '</a>'
-						console.log(nv)
+						// console.log(nv)
 						/*
 						href="/addartist?name=' + v + '
 						*/
@@ -298,7 +298,7 @@
 				await getSongInfo(i)
 				await sleep(1000)
 			}
-			console.log("get all completed")
+			// console.log("get all completed")
 		}
 		function shiftButton(id, flag) {
 			if (flag) {
