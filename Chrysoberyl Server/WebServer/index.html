@@ -12,6 +12,7 @@
 		integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 	<script src="/dist/semantic.min.js"></script>
 	<script src="/dist/chrysoberl_settings.js"></script>
+	<link rel="icon" href="/dist/favicon.ico">
 </head>
 
 <body>
@@ -62,7 +63,7 @@
 			</div>
 			<div class="ui segment">
 				<table class="ui basic table" id="filetable">
-
+					
 				</table>
 			</div>
 		</div>
@@ -230,7 +231,7 @@
 					iconType = "edit"
 					iconHTML = "<td class=\"collapsing\"><i class=\"" + iconType + " icon\"></i></td>"
 
-					trackHTML = "<td class=\"collapsing\"><div class='column' id='track'><div class=\"ui fluid input\"><input type=\"text\" value=\"" + 0 + "\" id=\"trackedit" + j + "\"></div></div></td>"
+					trackHTML = "<td class=\"collapsing\"><div class='column' id='track'><div class=\"ui fluid transparent input\"><input type=\"text\" value=\"" + 0 + "\" id=\"trackedit" + j + "\"></div></div></td>"
 					nameButton = "<div class=\"ui button icon\" onclick=coverAllAlbumName() data-tooltip=\"设置全部专辑名\"><i class=\"edit icon\"></i></div>"
 					nameHTML = "<td><div class='column'><div class=\"ui fluid action input\"><input type=\"text\" value=\"\" id=\"albumnameedit\"> "+nameButton+"</div></div></td>"
 					artistHTML = "<td class=\"collapsing\" id=\"artistedit\"></td>"
