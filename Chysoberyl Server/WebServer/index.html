@@ -121,7 +121,7 @@
 					colors = ["", "teal", "blue", "red"];
 					stat = queryStat(v)
 					nv = v;
-					if (res.inside == 2) {
+					if (stat == 2) {
 						nv = "<del>" + v + "</del>"
 						nv += " " + name_dic[v]
 						v = name_dic[v]
@@ -142,14 +142,6 @@
 		}
 		function initArtistEdit(field) {
 			field.html('<div class="ui multiple search selection dropdown" id="dropdown_artist"><input type="hidden"><i class="dropdown icon"></i><input type="text" class="search" tabindex="0"><span class="sizer"></span><div class="default text">选择艺术家...</div><div class="menu" tabindex="-1"></div></div>');
-			// await $.get(flaskServer + "/search",function(res){
-			// 	for (var i=0;i<res.results.length;i++){
-			// 		v=res.results[i]["name"]
-			// 		if (v!=""){
-			// 			$("#dropdown_artist > div.menu").append('<div class="item" data-value="' + v + '"><div class="ui ' + "teal" + ' empty circular label"></div>' + v + '</div>')
-			// 		}
-			// 	}
-			// })
 			field.append("<button class='ui icon button' onclick='coverAllArtists()'><i class='edit icon'></i></button>")
 			$("#dropdown_artist").dropdown({
 				apiSettings: {
@@ -167,14 +159,6 @@
 		}
 		function initAlbumArtistEdit(field) {
 			field.html('<div class="ui multiple search selection dropdown" id="dropdown_albumartist"><input type="hidden"><i class="dropdown icon"></i><input type="text" class="search" tabindex="0"><span class="sizer"></span><div class="default text">选择艺术家...</div><div class="menu" tabindex="-1"></div></div>');
-			// await $.get(flaskServer + "/search",function(res){
-			// 	for (var i=0;i<res.results.length;i++){
-			// 		v=res.results[i]["name"]
-			// 		if (v!=""){
-			// 			$("#dropdown_albumartist > div.menu").append('<div class="item" data-value="' + v + '"><div class="ui ' + "teal" + ' empty circular label"></div>' + v + '</div>')
-			// 		}
-			// 	}
-			// })
 			field.append("<button class='ui icon button' onclick='coverAllAlbumArtists()'><i class='edit icon'></i></button>")
 			$("#dropdown_albumartist").dropdown({
 				apiSettings: {
