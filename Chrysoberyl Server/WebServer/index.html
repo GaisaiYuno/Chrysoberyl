@@ -26,10 +26,15 @@
 		var AlbumsSet = new Set()
 	</script>
 
+	<div class="ui top attached progress" data-percent="0" id="fileprogress" style="z-index: 114514;">
+		<div class="bar">
+		</div>
+	</div>
 	<div class="ui main container">
+		
 		<div class="ui segments">
 			<div class="ui segment">
-				<div class="ui menu">
+				<div class="ui top fixed menu">
 					<div class="header item">Chrysoberyl</div>
 					<div class="right menu">
 						<a class="item" onclick=getPrePath(nowPath) data-content="返回" data-position="bottom left">
@@ -57,16 +62,13 @@
 					</div>
 				</div>
 			</div>
-			<div class="ui top attached progress" data-percent="0" id="fileprogress">
-				<div class="bar">
-				</div>
-			</div>
 			<div class="ui segment">
+				<div class="ui top attached progress" data-percent="0" id="fileprogress">
+					<div class="bar">
+					</div>
+				</div>
 				<div class="ui active inverted dimmer" id="dimmer">
 				  <div class="ui large text loader">Loading</div>
-				  <p></p>
-				  <p></p>
-				  <p></p>
 				</div>
 				<table class="ui basic table" id="filetable">
 					
