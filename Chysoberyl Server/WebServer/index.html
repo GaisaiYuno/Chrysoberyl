@@ -43,10 +43,10 @@
 						<a class="item" onclick=getAllLRC() data-content="下载全部歌词" data-position="bottom left">
 							<i class="download icon "></i>
 						</a>
-						<a class="item" href="/settings" data-content="设置" data-position="bottom left">
+						<a class="item" href="/settings" target="_blank" data-content="设置" data-position="bottom left">
 							<i class="cog icon"></i>
 						</a>
-						<a class="item" href="/addartist" data-content="添加艺术家" data-position="bottom left">
+						<a class="item" href="/addartist" target="_blank" data-content="添加艺术家" data-position="bottom left">
 							<i class="icons">
 								<i class="user icon"></i>
 								<i class="bottom right corner plus icon"></i>
@@ -84,12 +84,10 @@
 			artist = $("#artist" + id);
 			artist.html("");
 			SongArtists[id] = res.ARTIST;
-			// console.log(" sa to "+id)
 			await genLabel(artist, id);
 			albumartist = $("#albumartist" + id);
 			albumartist.html("");
 			SongArtists[music_files.length + id] = res.ALBUMARTIST;
-			// console.log(" sa to "+(music_files.length+id))
 			await genLabel(albumartist, music_files.length + id);
 		}
 		function genMusicTag(id) {
@@ -104,12 +102,10 @@
 			return new Promise(resolve => setTimeout(resolve, ms));
 		}
 		async function genLabel(field, dropdown_id) {
-			// console.log("gen "+dropdown_id)
 			field.html('<div class="ui multiple search selection dropdown" id="dropdown' + dropdown_id + '"><input type="hidden"><i class="dropdown icon"></i><input type="text" class="search" tabindex="0"><span class="sizer"></span><div class="default text">选择艺术家...</div><div class="menu" tabindex="-1"></div></div>');
 			dropdown_values = [];
 			for (var i = 0; i < SongArtists[dropdown_id].length; i++) {
 				v = SongArtists[dropdown_id][i];
-				// console.log(v);
 				if (v != "") {
 					colors = ["", "teal", "blue", "red"];
 					await $.post(flaskServer + "/artist", { artist: v }, function (res) {
@@ -119,11 +115,7 @@
 							nv += " " + res.match
 							v = res.match
 						}
-						nv='<a href="/addartist?name=' + v + '">' + nv + '</a>'
-						// console.log(nv)
-						/*
-						href="/addartist?name=' + v + '
-						*/
+						nv='<a href="/addartist?name=' + v + '" target="_blank">' + nv + '</a>'
 						$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '"><div class="ui ' + colors[res.inside] + ' empty circular label"></div>' + nv + '</div>')
 					})
 					dropdown_values.push(v)
