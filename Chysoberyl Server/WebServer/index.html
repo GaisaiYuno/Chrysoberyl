@@ -78,6 +78,9 @@
 			res = music_tags[id];
 			$("#nameedit" + id).attr("value", res.TITLE[0]);
 			$("#track" + id).html(res.TRACKNUMBER[0]);
+			if (res.TRACKNUMBER[0]==""){
+				$("#track" + id).html(id+1);
+			}
 			artist = $("#artist" + id);
 			artist.html("");
 			SongArtists[id] = res.ARTIST;
@@ -95,6 +98,7 @@
 			music_tags[id].ARTIST = artist.split(',')
 			albumartist = $("#dropdown" + (id + music_files.length)).dropdown("get value")
 			music_tags[id].ALBUMARTIST = albumartist.split(',')
+			music_tags[id].TRACKNUMBER[0] = $("#track" + id).val()
 		}
 		function sleep(ms) {
 			return new Promise(resolve => setTimeout(resolve, ms));
@@ -105,7 +109,7 @@
 			dropdown_values = [];
 			for (var i = 0; i < SongArtists[dropdown_id].length; i++) {
 				v = SongArtists[dropdown_id][i];
-				// console.log(v);
+				console.log(v);
 				if (v != "") {
 					colors = ["", "teal", "blue", "red"];
 					await $.post(flaskServer + "/artist", { artist: v }, function (res) {
@@ -312,10 +316,12 @@
 			$.post(flaskServer + '/getlrc', { path: music_files[id], netease_id: netease_id },
 				function (res) {
 					if (res.success && res.info != "无歌词") {
+					if (res.success && res.info != "无歌�?") {
 						$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "green check circle link icon")
 						$("#lyricbutton" + id + " > div").attr("data-tooltip", res.info)
 					}
 					else if (res.success && res.info == "无歌词") {
+					else if (res.success && res.info == "无歌�?") {
 						$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "blue info circle link icon")
 						$("#lyricbutton" + id + " > div").attr("data-tooltip", res.info)
 					}
@@ -392,6 +398,7 @@
 							$("#name" + i).append("<div class='ui indicating progress' id='ratiobar" + i + "'><div class='bar' ></div><div class='label' id='ratiobardes" + i + "'></div></div>")
 						}
 						$("#ratiobardes" + i).html("匹配：" + matched_list[i].name)
+						$("#ratiobardes" + i).html("匹配�?" + matched_list[i].name)
 						$("#ratiobar" + i).progress({ percent: matched_list[i].ratio * 100 });
 					}
 				})

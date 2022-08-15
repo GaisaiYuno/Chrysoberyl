@@ -20,7 +20,7 @@ source_path = './'
 split_note = [';', '、', ',', 'feat.', '×', 'and', '/', '&', 'と']
 processible_suffix = [".mp3", ".flac", ".ape", ".m4a", ".wav"]
 connect_note = ';'
-music163_url = "https://ncma-ruddy.vercel.app/"
+music163_url = "https://music.cyrilstudio.top/"
 
 name_dic = {}
 name_dic_path = "D:/name_dic.json"
@@ -171,6 +171,9 @@ def getSongInfo():
             tags["ALBUMARTIST"] = ['']
         if "TITLE" not in tags:
             tags["TITLE"] = ['']
+        if "TRACKNUMBER" not in tags:
+            tags["TRACKNUMBER"] = ['']
+		
         return {"success": True, "tags": json.dumps(tags)}
     except Exception as e:
         return {"success": False, "error": e}
