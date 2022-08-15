@@ -173,7 +173,7 @@ def getSongInfo():
             tags["TITLE"] = ['']
         if "TRACKNUMBER" not in tags:
             tags["TRACKNUMBER"] = ['']
-		
+
         return {"success": True, "tags": json.dumps(tags)}
     except Exception as e:
         return {"success": False, "error": e}
@@ -357,6 +357,14 @@ def getAlbum():
                 "name": matched_name
             })
         return {"success": True, "matched_list": json.dumps(matched_list)}
+    except:
+        return {"success": False}
+
+
+@app.route("/getdic", methods=['GET'])
+def get_name_dic():
+    try:
+        return {"success": True, "name_dic": json.dumps(name_dic), "inside_set": json.dumps(list(inside_set))}
     except:
         return {"success": False}
 
