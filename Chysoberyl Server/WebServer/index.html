@@ -316,12 +316,10 @@
 			$.post(flaskServer + '/getlrc', { path: music_files[id], netease_id: netease_id },
 				function (res) {
 					if (res.success && res.info != "无歌词") {
-					if (res.success && res.info != "无歌�?") {
 						$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "green check circle link icon")
 						$("#lyricbutton" + id + " > div").attr("data-tooltip", res.info)
 					}
 					else if (res.success && res.info == "无歌词") {
-					else if (res.success && res.info == "无歌�?") {
 						$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "blue info circle link icon")
 						$("#lyricbutton" + id + " > div").attr("data-tooltip", res.info)
 					}
@@ -398,7 +396,6 @@
 							$("#name" + i).append("<div class='ui indicating progress' id='ratiobar" + i + "'><div class='bar' ></div><div class='label' id='ratiobardes" + i + "'></div></div>")
 						}
 						$("#ratiobardes" + i).html("匹配：" + matched_list[i].name)
-						$("#ratiobardes" + i).html("匹配�?" + matched_list[i].name)
 						$("#ratiobar" + i).progress({ percent: matched_list[i].ratio * 100 });
 					}
 				})
