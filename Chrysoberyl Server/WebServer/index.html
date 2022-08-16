@@ -30,43 +30,36 @@
 		<div class="bar">
 		</div>
 	</div>
+	<div class="ui top fixed menu">
+		<div class="header item">Chrysoberyl</div>
+		<div class="right menu">
+			<a class="item" onclick=getPrePath(nowPath) data-content="返回" data-position="bottom left">
+				<i class="redo icon "></i>
+			</a>
+			<a class="item" onclick=getAllSongInfo() data-content="全部加载" data-position="bottom left">
+				<i class="icons">
+					<i class="book icon"></i>
+					<i class="bottom right corner sync icon"></i>
+				</i>
+			</a>
+			<a class="item" onclick=getAllLRC() data-content="下载全部歌词" data-position="bottom left">
+				<i class="download icon "></i>
+			</a>
+			<a class="item" href="/settings" target="_blank" data-content="设置" data-position="bottom left">
+				<i class="cog icon"></i>
+			</a>
+			<a class="item" href="/addartist" target="_blank" data-content="添加艺术家"
+				data-position="bottom left">
+				<i class="icons">
+					<i class="user icon"></i>
+					<i class="bottom right corner plus icon"></i>
+				</i>
+			</a>
+		</div>
+	</div>
 	<div class="ui main container">
-		
 		<div class="ui segments">
 			<div class="ui segment">
-				<div class="ui top fixed menu">
-					<div class="header item">Chrysoberyl</div>
-					<div class="right menu">
-						<a class="item" onclick=getPrePath(nowPath) data-content="返回" data-position="bottom left">
-							<i class="redo icon "></i>
-						</a>
-						<a class="item" onclick=getAllSongInfo() data-content="全部加载" data-position="bottom left">
-							<i class="icons">
-								<i class="book icon"></i>
-								<i class="bottom right corner sync icon"></i>
-							</i>
-						</a>
-						<a class="item" onclick=getAllLRC() data-content="下载全部歌词" data-position="bottom left">
-							<i class="download icon "></i>
-						</a>
-						<a class="item" href="/settings" target="_blank" data-content="设置" data-position="bottom left">
-							<i class="cog icon"></i>
-						</a>
-						<a class="item" href="/addartist" target="_blank" data-content="添加艺术家"
-							data-position="bottom left">
-							<i class="icons">
-								<i class="user icon"></i>
-								<i class="bottom right corner plus icon"></i>
-							</i>
-						</a>
-					</div>
-				</div>
-			</div>
-			<div class="ui segment">
-				<div class="ui top attached progress" data-percent="0" id="fileprogress">
-					<div class="bar">
-					</div>
-				</div>
 				<div class="ui active inverted dimmer" id="dimmer">
 				  <div class="ui large text loader">Loading</div>
 				</div>
@@ -208,7 +201,7 @@
 							i++
 						}
 						else {
-							iconHTML = "<td class=\"collapsing\"><i class=\"" + iconType + " icon\"></i></td>"
+							iconHTML = "<td class=\"collapsing\"><a href='/song?path="+item.path+"' target='_blank'><i class=\"" + iconType + " icon\"'></i></a></td>"
 						}
 
 						nameHTML = "<td>" + item.name + "</td>"

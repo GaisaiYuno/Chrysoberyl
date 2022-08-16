@@ -31,6 +31,9 @@ app.get('/settings', function (req, res) {
 app.get('/addartist', function (req, res) {
 	res.sendFile(__dirname + "/" + "addartist.html");
 })
+app.get('/song', function (req, res) {
+	res.sendFile(__dirname + "/" + "song.html");
+})
 app.use('/dist', express.static('dist'));
 
 app.post('/', function (req, res) {
