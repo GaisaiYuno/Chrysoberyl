@@ -99,7 +99,10 @@
 			music_tags[id].ARTIST = artist.split(',')
 			albumartist = $("#dropdown" + (id + music_files.length)).dropdown("get value")
 			music_tags[id].ALBUMARTIST = albumartist.split(',')
-			music_tags[id].TRACKNUMBER[0] = $("#track" + id).val()
+			if (music_tags[id].TRACKNUMBER[0]==""){
+				music_track=id+1
+				music_tags[id].TRACKNUMBER[0]=music_track.toString()
+			}
 		}
 		function sleep(ms) {
 			return new Promise(resolve => setTimeout(resolve, ms));
