@@ -12,6 +12,10 @@ import json
 import time
 import pylrc
 import difflib
+from mutagen.flac import FLAC,Picture
+from mutagen.mp3 import MP3
+from mutagen.id3 import ID3, APIC, error, PictureType
+from pprint import pprint
 
 MatchBrackets = True
 DownloadLRC = True
@@ -20,7 +24,7 @@ source_path = './'
 split_note = [';', '、', ',', 'feat.', '×', 'and', '/', '&', 'と']
 processible_suffix = [".mp3", ".flac", ".ape", ".m4a", ".wav"]
 connect_note = ';'
-music163_url = "https://music.cyrilstudio.top/"
+music163_url = "https://api-music.imsyy.top/"
 
 name_dic = {}
 name_dic_path = "D:/name_dic.json"
@@ -178,22 +182,51 @@ def getSongInfo():
     except Exception as e:
         return {"success": False, "error": e}
 
+def add_cover(filename, albumart):
+    if (filename.split(".")[-1]=="flac"):
+        audio = FLAC(filename)
+        p=Picture()
+        with open(albumart, 'rb') as albumart:
+            p.data=albumart.read()
+        p.type = PictureType.COVER_FRONT
+        audio.clear_pictures()
+        audio.add_picture(p)
+        audio.save()
+    elif(filename.split(".")[-1]=="mp3"):
+        audio = MP3(filename, ID3=ID3)
+        with open(albumart, 'rb') as albumart:
+            audio.tags.add(
+                APIC(
+                    encoding=3, # 3 is for utf-8
+                    mime='image/jpeg', # image/jpeg or image/png
+                    type=3, # 3 is for the cover image
+                    desc=u'Cover',
+                    data=albumart.read()
+                )
+            )
+        audio.save()
+
 
 @app.route("/savesong", methods=['POST'])
 def saveSong():
-    try:
-        print(request.form)
-        path = request.form["path"]
-        song = taglib.File(path)
-        tags = json.loads(request.form["tags"])
-        tags["ARTIST"] = [connect_note.join(tags["ARTIST"])]
-        tags["ALBUMARTIST"] = [connect_note.join(tags["ALBUMARTIST"])]
-        song.tags = tags
-        song.save()
-        song.close()
-        return {"success": True}
-    except Exception as e:
-        return {"success": False, "error": e}
+    # try:
+    path = request.form["path"]
+    song = taglib.File(path)
+    tags = json.loads(request.form["tags"])
+    tags["ARTIST"] = [connect_note.join(tags["ARTIST"])]
+    tags["ALBUMARTIST"] = [connect_note.join(tags["ALBUMARTIST"])]
+    song.tags = tags
+    song.save()
+    song.close()
+    # if cover.jpg exists than insert the cover
+    if os.path.exists("cover.jpg"):
+        # try:
+        add_cover(path, "cover.jpg")
+        # except:
+        #     print("Cover Error")
+    return {"success": True}
+    # except Exception as e:
+    #     return {"success": False, "error": e}
 
 
 @app.route("/savesetting", methods=['POST'])
@@ -321,6 +354,13 @@ def addDic():
 def string_similar(s1, s2):
     return difflib.SequenceMatcher(None, s1, s2).quick_ratio()
 
+@app.route("/delete_image", methods=['GET'])
+def del_image():
+    try:
+        os.remove("cover.jpg")
+        return {"success": True}
+    except:
+        return {"success": False}
 
 @app.route("/getalbum", methods=['POST'])
 def getAlbum():
@@ -328,34 +368,46 @@ def getAlbum():
         album_id = request.form["album_id"]
         while True:
             try:
+                print("API")
                 alb_req = requests.get(music163_url + "album",
-                                       params={
-                                           'id': album_id,
-                                       })
+                                        params={
+                                            'id': album_id,
+                                        })
                 break
             except:
                 print("API Error")
                 time.sleep(5000)
         alb_req = alb_req.json()
+        # print(alb_req)
         music_tags = json.loads(request.form["music_tags"])
         matched_list = []
+        picUrl = ""
         for i in range(len(music_tags)):
             my_song = music_tags[i]
             max_ratio = 0
             netease_id = 0
             matched_name = ""
+            track = 0
             for netease_song in alb_req["songs"]:
                 ratio = string_similar(netease_song["name"],
-                                       my_song['TITLE'][0])
+                                        my_song['TITLE'][0])
                 if (ratio > max_ratio):
                     max_ratio = ratio
                     netease_id = netease_song["id"]
                     matched_name = netease_song["name"]
+                    track = netease_song["no"]
+                print(netease_song)
+                picUrl = netease_song["al"]["picUrl"]
             matched_list.append({
                 "ratio": max_ratio,
                 "netease_id": netease_id,
-                "name": matched_name
+                "name": matched_name,
+                "track": track
             })
+        print(picUrl)
+        r = requests.get(picUrl)
+        with open("cover.jpg", 'wb') as f:
+            f.write(r.content)
         return {"success": True, "matched_list": json.dumps(matched_list)}
     except:
         return {"success": False}

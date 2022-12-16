@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Chrysoberyl</title>
+	</meta>
+	<meta name="viewport" content="width=device-width, initial-scale=0.5, minimum-scale=1.0, maximum-scale=4.0">
+	</meta>
+	<link rel="stylesheet" type="text/css" href="/dist/semantic.min.css">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+		integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+	<script src="/dist/semantic.min.js"></script>
+	<script src="/dist/chrysoberl_settings.js"></script>
+	<link rel="icon" href="/dist/favicon.ico">
+</head>
+
+<body>
+	<script>
+		var files = []
+		var music_files = []
+		var music_tags = []
+		var count_complete = 0
+		var matched_list = []
+		var name_dic, inside_set
+		var AlbumsSet = new Set()
+	</script>
+
+	<div class="ui top attached progress" data-percent="0" id="fileprogress" style="z-index: 114514;">
+		<div class="bar">
+		</div>
+	</div>
+	<div class="ui top fixed menu">
+		<div class="header item">Chrysoberyl</div>
+		<div class="right menu">
+			<a class="item" onclick=getPrePath(nowPath) data-content="返回" data-position="bottom left">
+				<i class="redo icon "></i>
+			</a>
+			<a class="item" onclick=getAllSongInfo() data-content="全部加载" data-position="bottom left">
+				<i class="icons">
+					<i class="book icon"></i>
+					<i class="bottom right corner sync icon"></i>
+				</i>
+			</a>
+			<a class="item" onclick=getAllLRC() data-content="下载全部歌词" data-position="bottom left">
+				<i class="download icon "></i>
+			</a>
+			<a class="item" href="/settings" target="_blank" data-content="设置" data-position="bottom left">
+				<i class="cog icon"></i>
+			</a>
+			<a class="item" href="/addartist" target="_blank" data-content="添加艺术家"
+				data-position="bottom left">
+				<i class="icons">
+					<i class="user icon"></i>
+					<i class="bottom right corner plus icon"></i>
+				</i>
+			</a>
+		</div>
+	</div>
+	<div class="ui main container">
+		<div class="ui segments">
+			<div class="ui segment">
+				<div class="ui active inverted dimmer" id="dimmer">
+				  <div class="ui large text loader">Loading</div>
+				</div>
+				<table class="ui basic table" id="filetable">
+					
+				</table>
+			</div>
+		</div>
+	</div>
+	<script>
+		function httpString(s) {
+			var reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+			var reg = /(https?|http|ftp|file):\/\/[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]/g;
+			s = s.match(reg);
+			return (s)
+		}
+		function myIsNaN(value) { return typeof value === 'number' && !isNaN(value); }
+		function updateMusicTag(id) {
+			res = music_tags[id];
+			$("#nameedit" + id).attr("value", res.TITLE[0]);
+			$("#track" + id).html(res.TRACKNUMBER[0]);
+			if (res.TRACKNUMBER[0] == "") {
+				$("#track" + id).html(id + 1);
+			}
+			artist = $("#artist" + id);
+			artist.html("");
+			genLabel(artist, res.ARTIST, id);
+			albumartist = $("#albumartist" + id);
+			albumartist.html("");
+			genLabel(albumartist, res.ALBUMARTIST, music_files.length + id);
+			AlbumsSet.add(res.ALBUM[0])
+			albumnameedit = $("#albumnameedit").attr("value", Array.from(AlbumsSet).join(','))
+		}
+		function genMusicTag(id) {
+			music_tags[id].TITLE[0] = $("#nameedit" + id).val()
+			artist = $("#dropdown" + id).dropdown("get value")
+			music_tags[id].ARTIST = artist.split(',')
+			albumartist = $("#dropdown" + (id + music_files.length)).dropdown("get value")
+			music_tags[id].ALBUMARTIST = albumartist.split(',')
+			if (music_tags[id].TRACKNUMBER[0]==""){
+				music_track=id+1
+				music_tags[id].TRACKNUMBER[0]=music_track.toString()
+			}
+		}
+		function sleep(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+		function queryStat(artist) {
+			if (inside_set.has(artist)) {
+				return 1;
+			}
+			else if (name_dic[artist] != undefined) {
+				return 2;
+			}
+			else {
+				return 3;
+			}
+		}
+		async function genLabel(field, artists, dropdown_id) {
+			field.html('<div class="ui multiple search selection dropdown" id="dropdown' + dropdown_id + '"><input type="hidden"><i class="dropdown icon"></i><input type="text" class="search" tabindex="0"><span class="sizer"></span><div class="default text">选择艺术家...</div><div class="menu" tabindex="-1"></div></div>');
+			dropdown_values = [];
+			console.log(artists)
+			for (var i = 0; i < artists.length; i++) {
+				v = artists[i];
+				if (v != "") {
+					colors = ["", "teal", "blue", "red"];
+					stat = queryStat(v)
+					nv = v;
+					if (stat == 2) {
+						nv = "<del>" + v + "</del>"
+						nv += " " + name_dic[v]
+						v = name_dic[v]
+					}
+					nv = '<a href="/addartist?name=' + v + '" target="_blank">' + nv + '</a>'
+					console.log(nv)
+					$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '"><div class="ui ' + colors[stat] + ' empty circular label"></div>' + nv + '</div>')
+					dropdown_values.push(v)
+				}
+			}
+			console.log(dropdown_values)
+			for (const v of inside_set) {
+				if (v != "" && !dropdown_values.includes(v)) {
+					$("#dropdown" + dropdown_id + " > div.menu").append('<div class="item" data-value="' + v + '" href="/addartist?name="' + v + '"><div class="ui ' + "teal" + ' empty circular label"></div>' + v + '</div>')
+				}
+			}
+			$("#dropdown" + dropdown_id).dropdown("set selected", dropdown_values)
+		}
+		function initArtistEdit(field) {
+			field.html('<div class="ui multiple search selection dropdown" id="dropdown_artist"><input type="hidden"><i class="dropdown icon"></i><input type="text" class="search" tabindex="0"><span class="sizer"></span><div class="default text">选择艺术家...</div><div class="menu" tabindex="-1"></div></div>');
+			field.append("<button class='ui icon button' onclick='coverAllArtists()'><i class='edit icon'></i></button>")
+			$("#dropdown_artist").dropdown({
+				apiSettings: {
+					url: flaskServer + '/search/{query}'
+				},
+				saveRemoteData: false
+			}
+			)
+		}
+		function coverAllArtists() {
+			for (var i = 0; i < music_files.length; i++) {
+				val = $("#dropdown_artist").dropdown("get value")
+				$("#dropdown" + i).dropdown("set exactly", val.split(','))
+			}
+		}
+		function initAlbumArtistEdit(field) {
+			field.html('<div class="ui multiple search selection dropdown" id="dropdown_albumartist"><input type="hidden"><i class="dropdown icon"></i><input type="text" class="search" tabindex="0"><span class="sizer"></span><div class="default text">选择艺术家...</div><div class="menu" tabindex="-1"></div></div>');
+			field.append("<button class='ui icon button' onclick='coverAllAlbumArtists()'><i class='edit icon'></i></button>")
+			$("#dropdown_albumartist").dropdown({
+				apiSettings: {
+					url: flaskServer + '/search/{query}'
+				},
+				saveRemoteData: false
+			}
+			)
+		}
+		function coverAllAlbumArtists() {
+			for (var i = 0; i < music_files.length; i++) {
+				val = $("#dropdown_albumartist").dropdown("get value")
+				$("#dropdown" + (i + music_files.length)).dropdown("set exactly", val.split(','))
+			}
+		}
+		function loadFile(path) {
+			$("#dimmer").attr("class","ui active inverted dimmer")
+			nowPath = path
+			fileTable = $("#filetable");
+			fileTable.html("<thead><tr><th colspan=\"5\"> " + path + "</th><th colspan=\"3\"><div class='ui icon fluid input'><input type='text' placeholder='输入专辑网易云 ID...' id='neteasealbumid'><i class='circular search link icon' onclick='getAlbum($(\"#neteasealbumid\").val())'></i></div></th></tr></thead>");
+
+			$.post('/', { path: path }, function (res) {
+				files = []
+				music_files = []
+				var i = 0, j = 0
+				res.files.forEach(
+					function (item) {
+						if (!item.isdir && !item.ismusic) {
+							return;
+						}
+						iconType = item.isdir ? "folder" : "file music"
+
+						if (item.isdir) {
+							iconHTML = "<td class=\"collapsing\"><button class=\"ui icon button\" onclick=loadFile(files[" + i + "])><i class=\"" + iconType + " icon\"></i></button></td>"
+							files.push(item.path)
+							i++
+						}
+						else {
+							iconHTML = "<td class=\"collapsing\"><a href='/song?path="+item.path+"' target='_blank'><i class=\"" + iconType + " icon\"'></i></a></td>"
+						}
+
+						nameHTML = "<td>" + item.name + "</td>"
+						trackHTML = ""
+						artistHTML = ""
+						albumartistHTML = ""
+						queryHTML = ""
+						lyricHTML = ""
+						saveHTML = ""
+
+						if (item.ismusic) {
+							queryButton = "<div class=\"ui button icon\" onclick=getSongInfo(" + j + ") data-tooltip=\"获取歌曲信息\"><i class=\"sync icon\"></i></div>"
+							queryHTML = "<td class=\"collapsing\" id='info" + j + "'>" + queryButton + "</td>"
+							nameHTML = "<td><div class='column' id='name" + j + "'><div class=\"ui fluid input\"><input type=\"text\" value=\"" + item.name + "\" id=\"nameedit" + j + "\"></div></div></td>"
+							trackHTML = "<td class=\"collapsing\" id=\"track" + j + "\"></td>"
+							artistHTML = "<td class=\"collapsing\" id=\"artist" + j + "\"></td>"
+							albumartistHTML = "<td class=\"collapsing\" id=\"albumartist" + j + "\"></td>"
+							lyricButton = "<div class=\"ui button icon\" onclick=get163id(" + j + "),shiftButton(" + j + ",1) data-tooltip=\"下载歌词\"><i class=\"download icon\"></i></div>"
+							lyricSearch = "<div class=\"ui icon input\" style='display:none'><input type=\"text\" placeholder=\"输入网易云 ID...\" id=\"neteaseid" + j + "\"><i class=\"circular search link icon\"  onclick=getLRC($(\"#neteaseid" + j + "\").val()," + j + "),shiftButton(" + j + ",0)></i></div>"
+							lyricHTML = "<td class=\"collapsing\" id=\"lyricbutton" + j + "\">" + lyricButton + lyricSearch + "</td>"
+							saveHTML = "<td class='collapsing'><div class='ui button icon' id='savebutton" + j + "' onclick=savebyid(" + j + ") data-tooltip='保存'><i class='edit icon'></i></div></td>"
+							music_files.push(item.path)
+						}
+						fileTable.append("<tr>" + iconHTML + trackHTML + nameHTML + artistHTML + albumartistHTML + queryHTML + lyricHTML + saveHTML + "</tr>")
+						j++
+					}
+				)
+				if (music_files.length != 0) {
+					iconType = "edit"
+					iconHTML = "<td class=\"collapsing\"><i class=\"" + iconType + " icon\"></i></td>"
+
+					trackHTML = "<td class=\"collapsing\"><div class='column' id='track'><div class=\"ui fluid transparent input\"><input type=\"text\" value=\"" + 0 + "\" id=\"trackedit" + j + "\"></div></div></td>"
+					nameButton = "<div class=\"ui button icon\" onclick=coverAllAlbumName() data-tooltip=\"设置全部专辑名\"><i class=\"edit icon\"></i></div>"
+					nameHTML = "<td><div class='column'><div class=\"ui fluid action input\"><input type=\"text\" value=\"\" id=\"albumnameedit\"> "+nameButton+"</div></div></td>"
+					artistHTML = "<td class=\"collapsing\" id=\"artistedit\"></td>"
+					albumartistHTML = "<td class=\"collapsing\" id=\"albumartistedit\"></td>"
+					queryButton = "<div class=\"ui button icon\" onclick=getAllSongInfo() data-tooltip=\"全部加载\"><i class=\"sync icon\"></i></div>"
+					queryHTML = "<td class=\"collapsing\" id='info" + j + "'>" + queryButton + "</td>"
+					lyricButton = "<div class=\"ui button icon\" onclick=getAllLRC() data-tooltip=\"下载全部歌词\"><i class=\"download icon\"></i></div>"
+					lyricHTML = "<td class=\"collapsing\" id=\"lyricbutton" + j + "\">" + lyricButton + "</td>"
+					saveHTML = "<td class='collapsing'><div class='ui button icon' onclick=saveAll() data-tooltip='全部保存'><i class='edit icon'></i></div></td>"
+					fileTable.append("<tr>" + iconHTML + trackHTML + nameHTML + artistHTML + albumartistHTML + queryHTML + lyricHTML + saveHTML + "</tr>")
+					initArtistEdit($("#artistedit"))
+					initAlbumArtistEdit($("#albumartistedit"))
+				}
+				music_tags = new Array(j)
+				$("#dimmer").attr("class","ui inactive inverted dimmer")
+				$("#fileprogress").progress({ percent: 0 });
+				count_complete = 0
+				AlbumsSet.clear()
+				$.get(flaskServer + "/delete_image")
+			});
+		}
+		function getSongInfo(id, refresh = true) {
+			if (refresh) {
+				$.get(flaskServer + "/getdic", function (res) {
+					name_dic = JSON.parse(res.name_dic)
+					inside_set = new Set(JSON.parse(res.inside_set))
+					$("#info" + id + " > div > i").attr("class", "notched circle loading icon")
+					path = music_files[id]
+					$.post(flaskServer + '/song', { path: path }, function (res, error) {
+						if (music_tags[id] == undefined) {
+							count_complete++
+						}
+						music_tags[id] = JSON.parse(res.tags)
+						updateMusicTag(id)
+						$("#fileprogress").progress({ percent: (count_complete / music_files.length) * 100 });
+						if (res.success) {
+							$("#info" + id + " > div > i").attr("class", "green check circle link icon")
+						}
+						else {
+							$("#info" + id + " > div > i").attr("class", "red times circle link icon")
+						}
+					}).fail(
+						function () {
+							$("#info" + id + " > div > i").attr("class", "red times circle link icon")
+						}
+					)
+				})
+			}
+			else {
+				$("#info" + id + " > div > i").attr("class", "notched circle loading icon")
+				path = music_files[id]
+				$.post(flaskServer + '/song', { path: path }, function (res, error) {
+					if (music_tags[id] == undefined) {
+						count_complete++
+					}
+					music_tags[id] = JSON.parse(res.tags)
+					updateMusicTag(id)
+					$("#fileprogress").progress({ percent: (count_complete / music_files.length) * 100 });
+					if (res.success) {
+						$("#info" + id + " > div > i").attr("class", "green check circle link icon")
+					}
+					else {
+						$("#info" + id + " > div > i").attr("class", "red times circle link icon")
+					}
+				}).fail(
+					function () {
+						$("#info" + id + " > div > i").attr("class", "red times circle link icon")
+					}
+				)
+			}
+		}
+		function getPrePath(path) {
+			$.post('/prepath', { path: path },
+				function (res) {
+					loadFile(res.pre_path.replace("\\", "/"))
+				}
+			)
+		}
+		function getAllSongInfo() {
+			AlbumsSet.clear()
+			$.get(flaskServer + "/getdic", function (res) {
+				name_dic = JSON.parse(res.name_dic)
+				inside_set = new Set(JSON.parse(res.inside_set))
+				$("#fileprogress").progress({ percent: 0 });
+				for (var i = 0; i < music_files.length; i++) {
+					getSongInfo(i, false)
+				}
+			})
+		}
+		function coverAllAlbumName(){
+			for (var i=0;i<music_files.length;i++){
+				music_tags[i]['ALBUM']=$("#albumnameedit").val()
+			}
+		}
+		function shiftButton(id, flag) {
+			if (flag) {
+				$("#lyricbutton" + id + " > div.ui.button.icon").transition("horizontal flip", '0ms')
+				$("#lyricbutton" + id + " > div.ui.icon.input").transition("horizontal flip")
+			}
+			else {
+				$("#lyricbutton" + id + " > div.ui.icon.input").transition("horizontal flip", '0ms')
+				$("#lyricbutton" + id + " > div.ui.button.icon").transition("horizontal flip")
+			}
+		}
+		function getLRC(netease_id, id) {
+			netease_id = parseID(netease_id)
+			$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "notched circle loading icon")
+			$.post(flaskServer + '/getlrc', { path: music_files[id], netease_id: netease_id },
+				function (res) {
+					if (res.success && res.info != "无歌词") {
+						$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "green check circle link icon")
+						$("#lyricbutton" + id + " > div").attr("data-tooltip", res.info)
+					}
+					else if (res.success && res.info == "无歌词") {
+						$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "blue info circle link icon")
+						$("#lyricbutton" + id + " > div").attr("data-tooltip", res.info)
+					}
+					else {
+						$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "red times circle link icon")
+					}
+					$("#lyricbutton" + id + " > div > i").attr("onclick", "getLRC($(\"#neteaseid" + id + "\").val()," + id + "),shiftButton(" + j + ",1)")
+				}
+			).fail(
+				function () {
+					$("#lyricbutton" + id + " > div.ui.button.icon > i").attr("class", "blue info circle link icon")
+				}
+			)
+		}
+		function getAllLRC() {
+			for (var i = 0; i < music_tags.length; i++) {
+				getLRC(matched_list[i].netease_id, i)
+			}
+		}
+		function get163id(id) {
+			if (matched_list[id] != undefined) {
+				getLRC(matched_list[id].netease_id, id)
+			}
+		}
+		function savebyid(id) {
+			genMusicTag(id)
+			$("#savebutton" + id + " > i").attr("class", "notched circle loading icon")
+			$.post(flaskServer + '/savesong', { path: music_files[id], tags: JSON.stringify(music_tags[id]) },
+				function (res) {
+					if (res.success) {
+						$("#savebutton" + id + " > i").attr("class", "green check circle link icon")
+					}
+					else {
+						$("#savebutton" + id + " > i").attr("class", "red times circle link icon")
+					}
+					$("#savebutton" + id + " > i").attr("onclick", "savebyid(" + id + ")")
+				}
+			).fail(
+				function () {
+					$("#savebutton" + id + " > i").attr("class", "red times circle link icon")
+				}
+			)
+		}
+		function saveAll() {
+			for (var i = 0; i < music_tags.length; i++) {
+				savebyid(i)
+			}
+		}
+		function parseID(netease_id) {
+			if (isNaN(netease_id)) {
+				netease_id = httpString(netease_id)[0]
+				parts = netease_id.split('/')
+				netease_id = parts[4]
+				if (netease_id == undefined) {
+					s = parts[3]
+					var reg = /\?id=[0-9]+/g
+					s = s.match(reg);
+					netease_id = s[0].substr(4);
+				}
+			}
+			return netease_id
+		}
+		function getAlbum(netease_id) {
+			netease_id = parseID(netease_id)
+			for (var i = 0; i < music_tags.length; i++) {
+				genMusicTag(i)
+			}
+			console.log(netease_id)
+			$.post(flaskServer + '/getalbum', { album_id: netease_id, music_tags: JSON.stringify(music_tags) },
+				function (res) {
+					matched_list = JSON.parse(res.matched_list)
+					for (var i = 0; i < music_tags.length; i++) {
+						if ($("#ratiobar" + i).length == 0) {
+							$("#name" + i).append("<div class='ui indicating progress' id='ratiobar" + i + "'><div class='bar' ></div><div class='label' id='ratiobardes" + i + "'></div></div>")
+						}
+						$("#ratiobardes" + i).html("匹配：" + matched_list[i].name)
+						$("#ratiobar" + i).progress({ percent: matched_list[i].ratio * 100 });
+						$("#track" + i).html(matched_list[i].track);
+						music_tags[i].TRACKNUMBER[0]=(matched_list[i].track).toString();
+					}
+				})
+		}
+	</script>
+	<script>
+		loadFile(nowPath)
+		$('.ui.progress').progress();
+		$('.item').popup();
+		$('.ui.button.icon').popup();
+	</script>
+</body>

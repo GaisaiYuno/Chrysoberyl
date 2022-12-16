@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Chrysoberyl</title>
+	</meta>
+	<meta name="viewport" content="width=device-width, initial-scale=0.5, minimum-scale=1.0, maximum-scale=4.0">
+	</meta>
+	<script src="https://upcdn.b0.upaiyun.com/libs/jquery/jquery-2.0.2.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.min.css">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+		integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+	<script src="https://semantic-ui.com/dist/semantic.min.js"></script>
+	<script src="/dist/chrysoberl_settings.js"></script>
+	<link rel="icon" href="/dist/favicon.ico">
+</head>
+
+<body>
+	<script>
+		var files = []
+		var music_files = []
+		var artist_profiles = []
+		function getQueryVariable(variable) {
+			var query = window.location.search.substring(1);
+			var vars = query.split("&");
+			for (var i = 0; i < vars.length; i++) {
+				var pair = vars[i].split("=");
+				if (pair[0] == variable) { return pair[1]; }
+			}
+			return "";
+		}
+	</script>
+	<div class="ui main container">
+		<div class="ui segments">
+			<div class="ui segment">
+				<div class="ui menu">
+					<div class="header item">Chrysoberyl</div>
+					<div class="right menu">
+					</div>
+				</div>
+			</div>
+			<div class="ui segment">
+				<div class="ui three column stackable grid">
+					<div class="column">
+						<h2 class="ui header">输入艺术家名称</h2>
+						<div class='ui icon fluid input'>
+							<input type='text' placeholder='输入艺术家名称...' id='artistname'>
+							<i class='circular search link icon' onclick="getMatch($('#artistname').val())"></i>
+						</div>
+					</div>
+					<div class="column" id="match" style="display:none">
+						<h2 class="ui header">选择匹配</h2>
+						<div class="ui segments">
+							<div class="segment">
+								<div class='ui icon fluid input'>
+									<input type='text' placeholder='输入匹配...' id='matchname'>
+									<i class='green checkmark search link icon'
+										onclick="addMatch($('#matchname').val())"></i>
+								</div>
+							</div>
+							<div class="segment">
+								<div class="ui fluid vertical basic buttons" id="buttons">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="column" id="adds" style="display:none">
+						<h2 class="ui header">添加的映射</h2>
+						<div class="ui fluid steps">
+							<div class="step">
+								<i class="user icon"></i>
+								<div class="content">
+									<div class="description" id="artist1"></div>
+								</div>
+							</div>
+							<div class="step">
+								<i class="user icon" id="icon2"></i>
+								<img class="ui mini circular image" src="" id="avatar" style="display:none">
+								<div class="content">
+									<div class="description" id="artist2"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<script>
+				function getMatch(artistname) {
+					if ($("#match").attr("style") != "display:none") {
+						$("#match").transition("horizontal flip")
+					}
+					$.post(flaskServer + "/getartist", { name: artistname }, function (ret) {
+						ret.artists = JSON.parse(ret.artists)
+						$("#buttons").html("")
+						for (var i = 0; i < ret.artists.length; i++) {
+							$("#buttons").append('<button class="ui fluid button" onclick="addMatch(this.innerHTML)">' + ret.artists[i]["name"] + '</button>')
+						}
+						artist_profiles = ret.artists
+						$("#match").transition("horizontal flip")
+					})
+				}
+				function addMatch(artistname) {
+					if ($("#adds").attr("style") != "display:none") {
+						$("#adds").transition("horizontal flip")
+					}
+					artist1 = $('#artistname').val()
+					artist2 = artistname
+					$.post(flaskServer + "/adddic", { "artist1": artist1, "artist2": artist2 }, function (ret) {
+						$("#artist1").html(artist1)
+						$("#artist2").html(artist2)
+						for (var i = 0; i < artist_profiles.length; i++) {
+							if (artist2 == artist_profiles[i].name) {
+								$("#icon2").attr("style", "display:none")
+								$("#avatar").attr("style", "")
+								$("#avatar").attr("src", artist_profiles[i].url)
+							}
+						}
+						$("#adds").transition("horizontal flip")
+					})
+				}
+				$('#artistname').attr("value",decodeURI(getQueryVariable("name")))
+			</script>
+		</div>
+</body>
